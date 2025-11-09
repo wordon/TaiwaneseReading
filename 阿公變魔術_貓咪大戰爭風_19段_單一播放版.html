@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <title>🎵 阿公變魔術 × 貓咪大戰爭播放器 😺</title>
+  <style>
+    body {
+      font-family: "Comic Sans MS", "DFKai-SB", system-ui, sans-serif;
+      max-width: 1000px;
+      margin: 40px auto;
+      padding: 0 20px 40px;
+      background-color: #FFF176;
+      font-size: 20px;
+    }
+    h1 {
+      text-align: center;
+      color: #333;
+      font-size: 2.6rem;
+      text-shadow: 2px 2px 0 #fff, 4px 4px 0 #FBC02D;
+      margin-bottom: 6px;
+    }
+    h2.subtitle {
+      text-align: center;
+      font-size: 1.1rem;
+      color: #5D4037;
+      margin-top: 0;
+      margin-bottom: 20px;
+    }
+    .segment {
+      margin: 20px 0 30px;
+      padding: 18px 22px;
+      border-radius: 22px;
+      border: 4px solid #333;
+      background-color: #FFFAF0;
+      box-shadow: 5px 5px 0 #FBC02D, 7px 7px 14px rgba(0,0,0,0.2);
+    }
+    .label {
+      font-weight: bold;
+      margin-bottom: 8px;
+      font-size: 1.2rem;
+      color: #3E2723;
+    }
+    .controls {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 10px;
+      flex-wrap: wrap;
+    }
+    select {
+      padding: 4px 10px;
+      border-radius: 10px;
+      border: 2px solid #333;
+      background: #FFFDE7;
+      font-size: 0.95em;
+    }
+    input[type="checkbox"] {
+      transform: scale(1.4);
+    }
+    audio {
+      width: 100%;
+    }
+    .segment img {
+      display: block;
+      width: 100%;
+      height: auto;
+      margin-top: 10px;
+      border-radius: 12px;
+      box-shadow: 3px 3px 10px rgba(0,0,0,0.2);
+    }
+  </style>
+</head>
+<body>
+  <h1>🎵 阿公變魔術</h1>
+  <h2 class="subtitle">貓咪大戰爭風語音練習播放器（19段）😺</h2>
+  <div id="segments-container"></div>
+
+  <script>
+    const container = document.getElementById("segments-container");
+    const segmentCount = 19;
+
+    for (let i = 1; i <= segmentCount; i++) {
+      const div = document.createElement("div");
+      div.className = "segment";
+      div.innerHTML = `
+        <div class="label">段落 ${i}</div>
+        <div class="controls">
+          <input type="checkbox" class="loopToggle" id="loop${i}">
+          <label for="loop${i}">🔁 重複播放</label>
+          <label for="speed${i}">⏩ 速度：</label>
+          <select class="speedSelect" id="speed${i}">
+            <option value="0.5">0.5x</option>
+            <option value="0.75">0.75x</option>
+            <option value="1.0" selected>1.0x（正常）</option>
+            <option value="1.25">1.25x</option>
+            <option value="1.5">1.5x</option>
+          </select>
+        </div>
+        <audio controls id="audio${i}">
+          <source src="segment_${i}.mp3" type="audio/mpeg">
+        </audio>
+        <img src="img_${i}.png" alt="" onerror="this.style.display='none';">
+      `;
+      container.appendChild(div);
+    }
+
+    const allAudios = Array.from(document.querySelectorAll('audio'));
+
+    // 僅允許單一播放
+    allAudios.forEach(audio => {
+      audio.addEventListener('play', () => {
+        allAudios.forEach(a => {
+          if (a !== audio && !a.paused) {
+            a.pause();
+            a.currentTime = 0;
+          }
+        });
+      });
+    });
+
+    // 速度與重播控制
+    document.querySelectorAll('.loopToggle').forEach((toggle, i) => {
+      const audio = document.getElementById(`audio${i+1}`);
+      if (audio) toggle.addEventListener('change', () => audio.loop = toggle.checked);
+    });
+    document.querySelectorAll('.speedSelect').forEach((select, i) => {
+      const audio = document.getElementById(`audio${i+1}`);
+      if (audio) select.addEventListener('change', () => audio.playbackRate = parseFloat(select.value));
+    });
+
+    // 空白鍵控制暫停／播放
+    let lastPlayed = null;
+    window.addEventListener('keydown', (e) => {
+      if (e.code === 'Space' || e.key === ' ') {
+        e.preventDefault();
+        e.stopPropagation();
+        const playing = allAudios.find(a => !a.paused && !a.ended);
+        if (playing) {
+          playing.pause();
+          lastPlayed = playing;
+        } else if (lastPlayed) {
+          lastPlayed.play();
+        }
+      }
+    }, true);
+  </script>
+</body>
+</html>
